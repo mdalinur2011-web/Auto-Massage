@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Payout Message Sender & Scheduler 🚀</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+    <style>
+        :root {
+            --primary: #00ff87;
+            --secondary: #00f2fe;
+            --bg: #0b0f19;
+            --surface-card: rgba(15, 23, 42, 0.9);
+            --text: #f8fafc;
+            --text-sub: #94a3b8;
+            --border: rgba(0, 242, 254, 0.2);
+            --danger: #ff2a3b;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
+
+        body {
+            background-color: var(--bg);
+            color: var(--text);
+            padding: 20px 15px;
+            background-image: radial-gradient(circle at 50% 10%, rgba(0, 242, 254, 0.05), transparent 50%);
+        }
+
+        .container {
+            max-width: 480px;
+            margin: 0 auto;
+            background: var(--surface-card);
+            padding: 25px 20px;
+            border-radius: 20px;
+            border: 1px solid var(--border);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+
+        .header { text-align: center; margin-bottom: 20px; }
+        .header h2 { color: var(--secondary); font-size: 1.4rem; }
+        .header p { font-size: 0.85rem; color: var(--text-sub); margin-top: 4px; }
+
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px; }
+
+        .btn-auto {
+            width: 100%; padding: 10px;
+            background: linear-gradient(135deg, #a855f7, #6366f1);
+            color: #fff; border: none; border-radius: 10px;
+            font-weight: 600; cursor: pointer; font-size: 0.85rem;
+            display: flex; align-items: center; justify-content: center; gap: 6px;
+            transition: 0.2s; box-shadow: 0 4px 15px rgba(139, 92, 246, 0.3);
+        }
+
+        .scheduler-box {
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px dashed var(--border);
+            padding: 15px; border-radius: 12px; margin-bottom: 20px;
+        }
+        .scheduler-title { font-size: 0.85rem; color: var(--secondary); font-weight: 600; margin-bottom: 10px; display: flex; align-items: center; gap: 6px; }
+
+        .form-group { margin-bottom: 12px; }
+        .form-group label { display: block; font-size: 0.8rem; color: var(--text-sub); margin-bottom: 4px; }
+        
+        .inp, select {
+            width: 100%; padding: 10px 12px;
+            background: rgba(0,0,0,0.4);
+            border: 1px solid var(--border);
+            border-radius: 8px; color: #fff;
+            outline: none; font-size: 0.85rem;
+        }
+
+        .calc-box {
+            background: rgba(0, 0, 0, 0.25); padding: 12px;
+            border-radius: 10px; border-left: 3px solid var(--secondary);
+            margin: 15px 0; font-size: 0.85rem;
+        }
+        .calc-box div { display: flex; justify-content: space-between; margin-bottom: 5px; }
+
+        .btn-send {
+            width: 100%; padding: 12px;
+            background: var(--primary); color: #000;
+            border: none; border-radius: 10px;
+            font-weight: 700; cursor: pointer;
+            font-size: 0.95rem;
+        }
+
+        .btn-start {
+            width: 100%; padding: 10px;
+            background: #10b981; color: #fff;
+            border: none; border-radius: 8px;
+            font-weight: 600; cursor: pointer; font-size: 0.85rem;
+        }
+        .btn-stop {
+            width: 100%; padding: 10px;
+            background: var(--danger); color: #fff;
+            border: none; border-radius: 8px;
+            font-weight: 600; cursor: pointer; font-size: 0.85rem;
+        }
+
+        .status-badge {
+            font-size: 0.75rem; padding: 4px 8px; border-radius: 12px;
+            background: rgba(255,255,255,0.1); color: var(--text-sub); display: inline-block; margin-top: 5px;
+        }
+        .status-badge.active { background: rgba(16, 185, 129, 0.2); color: #10b981; }
+
+        .preview-box {
+            margin-top: 15px; background: rgba(0, 0, 0, 0.4);
+            padding: 12px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.1);
+            font-size: 0.8rem; white-space: pre-wrap; word-break: break-all; color: #d1d5db;
+        }
+
+        .toast {
+            position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
+            background: var(--secondary); color: #000; padding: 10px 20px;
+            border-radius: 20px; font-weight: 700; font-size: 0.85rem;
+            opacity: 0; pointer-events: none; transition: 0.3s; z-index: 9999;
+        }
+        .toast.show { opacity: 1; top: 30px; }
+    </style>
+</head>
+<body>
+
+<div id="toast" class="toast">Message Sent Successfully!</div>
+
+<div class="container">
+    <div class="header">
+        <h2><i class="fab fa-telegram-plane"></i> Payout Sender & Scheduler</h2>
+        <p>Background Timed Payout Sender</p>
+    </div>
+
+    <div class="scheduler-box">
+        <div class="scheduler-title"><i class="fas fa-clock"></i> Auto Send Timer Settings</div>
+        
+        <div class="grid-2">
+            <div class="form-group" style="margin-bottom:0;">
+                <label>Interval (Minutes)</label>
+                <select id="timer-interval">
+                    <option value="1">Every 1 Min</option>
+                    <option value="2">Every 2 Mins</option>
+                    <option value="5">Every 5 Mins</option>
+                    <option value="10">Every 10 Mins</option>
+                </select>
+            </div>
+            <div class="form-group" style="margin-bottom:0;">
+                <label>Messages Per Cycle</label>
+                <input type="number" id="timer-count" class="inp" value="1" min="1" max="10">
+            </div>
+        </div>
+
+        <div style="margin-top: 10px;" class="grid-2">
+            <button id="btn-start-timer" class="btn-start" onclick="startAutoScheduler()"><i class="fas fa-play"></i> Start Auto Send</button>
+            <button id="btn-stop-timer" class="btn-stop" onclick="stopAutoScheduler()" disabled style="opacity: 0.5;"><i class="fas fa-stop"></i> Stop</button>
+        </div>
+        <div style="text-align: center;">
+            <span id="timer-status" class="status-badge">Status: Idle</span>
+        </div>
+    </div>
+
+    <button class="btn-auto" onclick="autoGenerateData()" style="margin-bottom: 15px;">
+        <i class="fas fa-dice"></i> Fill Form With Random Data
+    </button>
+
+    <div class="form-group">
+        <label>Username (Telegram User)</label>
+        <input type="text" id="username" class="inp" placeholder="e.g. @jayeshanjana07" oninput="updateCalculation()">
+    </div>
+
+    <div class="form-group">
+        <label>Points (Min 100 - Max 1000)</label>
+        <input type="number" id="points" class="inp" placeholder="e.g. 613" oninput="updateCalculation()">
+    </div>
+
+    <div class="form-group">
+        <label>Wallet Address (USDT BEP20 / LTC)</label>
+        <input type="text" id="address" class="inp" placeholder="e.g. 0x... or L..." oninput="updateCalculation()">
+    </div>
+
+    <div class="calc-box">
+        <div><span>Converted Value:</span> <span id="val-usdt" style="font-weight:600; color:#fff;">$0.0000 USDT</span></div>
+        <div><span>Transaction Fee:</span> <span>$0.01 USDT</span></div>
+        <div><span style="color:var(--primary); font-weight:700;">Net Payable:</span> <span id="val-net" style="color:var(--primary); font-weight:700;">$0.0000 USDT</span></div>
+    </div>
+
+    <button class="btn-send" onclick="sendCustomPayout()">Send Single Notification 🚀</button>
+
+    <div style="margin-top: 15px; font-size: 0.8rem; color: var(--text-sub);">Live Message Preview:</div>
+    <div id="msg-preview" class="preview-box">Fill in the form to see preview...</div>
+</div>
+
+<script>
+    const TELEGRAM_BOT_TOKEN = "8911057096:AAE5pKeCmqjO9mg-FtkNJTpyA37Drk4k4Jk";
+    const PAYOUT_CHANNEL_ID = "@EarnPointsPayouts";
+
+    let worker = null;
+    let wakeLock = null;
+
+    const providedUsernames = [
+        "@jayeshanjana07", "@tiger672", "@Reiko184", "@Patel3739", "@EVANWINNER", 
+        "@Chukwudi12390", "@Trx87278", "@joyboy_222", "@Dropwallett", "@N_SS_U", 
+        "@CR77_1", "@GOJO_x77", "@Vhgfo", "@Melankollik", "@abcr712", "@hailowy", 
+        "@Ab02afghan", "@millk34_56", "@Motikhan658", "@Beki01234567890", "@dikxxa_3nd", 
+        "@AMomopl902", "@Dark_Pixel_0", "@SweetrateHookup", "@Huhu63", "@rm_c_7", 
+        "@Teevvvv", "@mandoxx1", "@itsshanto2", "@Zex073", "@Al_9001", 
+        "@Mkmkmkmkmkmmkmk", "@DDDD_2222222", "@None_1345", "@Faketag143", "@ranit6t9", 
+        "@aminur655", "@rk71strik"
+    ];
+
+    function getRandomUsername() {
+        return providedUsernames[Math.floor(Math.random() * providedUsernames.length)];
+    }
+
+    function getRandomAddress() {
+        const isBEP20 = Math.random() > 0.5;
+        let address = "";
+        if (isBEP20) {
+            const hex = "0123456789abcdefABCDEF";
+            address = "0x";
+            for (let i = 0; i < 38; i++) address += hex.charAt(Math.floor(Math.random() * hex.length));
+        } else {
+            const ltcChars = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz";
+            address = "L";
+            for (let i = 0; i < 33; i++) address += ltcChars.charAt(Math.floor(Math.random() * ltcChars.length));
+        }
+        return address;
+    }
+
+    function autoGenerateData() {
+        const randomPoints = Math.floor(Math.random() * (1000 - 100 + 1)) + 100;
+        document.getElementById('username').value = getRandomUsername();
+        document.getElementById('points').value = randomPoints;
+        document.getElementById('address').value = getRandomAddress();
+        updateCalculation();
+    }
+
+    function updateCalculation() {
+        let username = document.getElementById('username').value.trim() || '@user';
+        let pts = parseFloat(document.getElementById('points').value) || 0;
+        let address = document.getElementById('address').value.trim() || 'N/A';
+
+        let usdt = Number(((pts / 100) * 0.05).toFixed(4));
+        let netReceive = usdt > 0.01 ? Number((usdt - 0.01).toFixed(4)) : 0;
+
+        document.getElementById('val-usdt').innerText = `$${usdt} USDT`;
+        document.getElementById('val-net').innerText = `$${netReceive} USDT`;
+
+        let previewMsg = `🚀NEW SUCCESSFUL WITHDRAWAL🚀\n\n` +
+                         `👤 User: ${username}\n` +
+                         `💰 Amount: ${pts} Points (~$${usdt} USDT)\n` +
+                         `⛽ Transaction Fee: $0.01 USDT\n` +
+                         `💵 Payable Amount: $${netReceive} USDT\n` +
+                         `📌 Address: ${address}\n\n` +
+                         `🤖Bot: @EarnPoints1_bot\n` +
+                         `🛡️Status: Payment Successful ✅`;
+
+        document.getElementById('msg-preview').innerText = previewMsg;
+    }
+
+    function showToast(msg) {
+        const t = document.getElementById('toast');
+        t.innerText = msg;
+        t.classList.add('show');
+        setTimeout(() => t.classList.remove('show'), 3000);
+    }
+
+    function sendCustomPayout(silent = false) {
+        let username = document.getElementById('username').value.trim();
+        let pts = parseFloat(document.getElementById('points').value);
+        let address = document.getElementById('address').value.trim();
+
+        if(!username || !pts || !address) return;
+
+        let usdt = Number(((pts / 100) * 0.05).toFixed(4));
+        let netReceive = usdt > 0.01 ? Number((usdt - 0.01).toFixed(4)) : 0;
+
+        let message = `🚀NEW SUCCESSFUL WITHDRAWAL🚀\n\n` +
+                      `👤 User: ${username}\n` +
+                      `💰 Amount: ${pts} Points (~$${usdt} USDT)\n` +
+                      `⛽ Transaction Fee: $0.01 USDT\n` +
+                      `💵 Payable Amount: $${netReceive} USDT\n` +
+                      `📌 Address: <code>${address}</code>\n\n` +
+                      `🤖Bot: @EarnPoints1_bot\n` +
+                      `🛡️Status: Payment Successful ✅`;
+
+        fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ chat_id: PAYOUT_CHANNEL_ID, text: message, parse_mode: 'HTML' })
+        })
+        .then(res => res.json())
+        .then(data => {
+            if(data.ok && !silent) showToast("Message sent successfully! ✅");
+        });
+    }
+
+    // Web Worker Background Script Generation
+    function createWorkerScript() {
+        const workerCode = `
+            let timer = null;
+            self.onmessage = function(e) {
+                if (e.data.action === 'start') {
+                    let intervalMs = e.data.interval * 60 * 1000;
+                    self.postMessage({ action: 'tick' });
+                    timer = setInterval(() => {
+                        self.postMessage({ action: 'tick' });
+                    }, intervalMs);
+                } else if (e.data.action === 'stop') {
+                    clearInterval(timer);
+                }
+            };
+        `;
+        const blob = new Blob([workerCode], { type: 'application/javascript' });
+        return new Worker(URL.createObjectURL(blob));
+    }
+
+    async function requestWakeLock() {
+        try {
+            if ('wakeLock' in navigator) {
+                wakeLock = await navigator.wakeLock.request('screen');
+            }
+        } catch (err) { console.log(err); }
+    }
+
+    function startAutoScheduler() {
+        const intervalMins = parseInt(document.getElementById('timer-interval').value) || 1;
+        const msgCount = parseInt(document.getElementById('timer-count').value) || 1;
+
+        document.getElementById('btn-start-timer').disabled = true;
+        document.getElementById('btn-start-timer').style.opacity = '0.5';
+        document.getElementById('btn-stop-timer').disabled = false;
+        document.getElementById('btn-stop-timer').style.opacity = '1';
+
+        const badge = document.getElementById('timer-status');
+        badge.innerText = `Running in Background: ${msgCount} msg every ${intervalMins} min(s)`;
+        badge.classList.add('active');
+
+        requestWakeLock();
+
+        worker = createWorkerScript();
+        worker.postMessage({ action: 'start', interval: intervalMins });
+
+        worker.onmessage = function(e) {
+            if (e.data.action === 'tick') {
+                for (let i = 0; i < msgCount; i++) {
+                    setTimeout(() => {
+                        autoGenerateData();
+                        sendCustomPayout(true);
+                    }, i * 1500);
+                }
+                showToast(`Auto Sent ${msgCount} Payout Message(s)! 🚀`);
+            }
+        };
+    }
+
+    function stopAutoScheduler() {
+        if (worker) {
+            worker.postMessage({ action: 'stop' });
+            worker.terminate();
+        }
+        if (wakeLock) {
+            wakeLock.release().then(() => { wakeLock = null; });
+        }
+        
+        document.getElementById('btn-start-timer').disabled = false;
+        document.getElementById('btn-start-timer').style.opacity = '1';
+        document.getElementById('btn-stop-timer').disabled = true;
+        document.getElementById('btn-stop-timer').style.opacity = '0.5';
+
+        const badge = document.getElementById('timer-status');
+        badge.innerText = `Status: Idle`;
+        badge.classList.remove('active');
+        
+        showToast("Auto Scheduler Stopped!");
+    }
+</script>
+</body>
+</html>
