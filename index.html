@@ -177,9 +177,10 @@
     </div>
 
     <div class="calc-box">
-        <div><span>Converted Value:</span> <span id="val-usdt" style="font-weight:600; color:#fff;">$0.0000 USDT</span></div>
-        <div><span>Transaction Fee:</span> <span>$0.01 USDT</span></div>
-        <div><span style="color:var(--primary); font-weight:700;">Net Payable:</span> <span id="val-net" style="color:var(--primary); font-weight:700;">$0.0000 USDT</span></div>
+        <div><span>Rate:</span> <span>2000 Points = 1.00 USDT</span></div>
+        <div><span>Converted Value:</span> <span id="val-usdt" style="font-weight:600; color:#fff;">0.0000 USDT</span></div>
+        <div><span>Transaction Fee (20%):</span> <span id="val-fee" style="color:#fff;">0.0000 USDT</span></div>
+        <div><span style="color:var(--primary); font-weight:700;">Net Payable:</span> <span id="val-net" style="color:var(--primary); font-weight:700;">0.0000 USDT</span></div>
     </div>
 
     <button class="btn-send" onclick="sendCustomPayout()">Send Single Notification 🚀</button>
@@ -238,17 +239,20 @@
         let pts = parseFloat(document.getElementById('points').value) || 0;
         let address = document.getElementById('address').value.trim() || 'N/A';
 
-        let usdt = Number(((pts / 100) * 0.05).toFixed(4));
-        let netReceive = usdt > 0.01 ? Number((usdt - 0.01).toFixed(4)) : 0;
+        // Same calculation as the first index file: 2000 Points = 1 USDT, then 20% fee.
+        let usdt = Number((pts / 2000).toFixed(4));
+        let fee = Number((usdt * 0.20).toFixed(4));
+        let netReceive = Number((usdt - fee).toFixed(4));
 
-        document.getElementById('val-usdt').innerText = `$${usdt} USDT`;
-        document.getElementById('val-net').innerText = `$${netReceive} USDT`;
+        document.getElementById('val-usdt').innerText = `${usdt.toFixed(4)} USDT`;
+        document.getElementById('val-fee').innerText = `${fee.toFixed(4)} USDT`;
+        document.getElementById('val-net').innerText = `${netReceive.toFixed(4)} USDT`;
 
         let previewMsg = `🚀NEW SUCCESSFUL WITHDRAWAL🚀\n\n` +
                          `👤 User: ${username}\n` +
-                         `💰 Amount: ${pts} Points (~$${usdt} USDT)\n` +
-                         `⛽ Transaction Fee: $0.01 USDT\n` +
-                         `💵 Payable Amount: $${netReceive} USDT\n` +
+                         `💰 Amount: ${pts} Points (~$${usdt.toFixed(4)} USDT)\n` +
+                         `⛽ Transaction Fee (20%): $${fee.toFixed(4)} USDT\n` +
+                         `💵 Payable Amount: $${netReceive.toFixed(4)} USDT\n` +
                          `📌 Address: ${address}\n\n` +
                          `🤖Bot: @EarnPoints1_bot\n` +
                          `🛡️Status: Payment Successful ✅`;
@@ -270,14 +274,16 @@
 
         if(!username || !pts || !address) return;
 
-        let usdt = Number(((pts / 100) * 0.05).toFixed(4));
-        let netReceive = usdt > 0.01 ? Number((usdt - 0.01).toFixed(4)) : 0;
+        // Keep the sent payout message calculation identical to the app calculator.
+        let usdt = Number((pts / 2000).toFixed(4));
+        let fee = Number((usdt * 0.20).toFixed(4));
+        let netReceive = Number((usdt - fee).toFixed(4));
 
         let message = `🚀NEW SUCCESSFUL WITHDRAWAL🚀\n\n` +
                       `👤 User: ${username}\n` +
-                      `💰 Amount: ${pts} Points (~$${usdt} USDT)\n` +
-                      `⛽ Transaction Fee: $0.01 USDT\n` +
-                      `💵 Payable Amount: $${netReceive} USDT\n` +
+                      `💰 Amount: ${pts} Points (~$${usdt.toFixed(4)} USDT)\n` +
+                      `⛽ Transaction Fee (20%): $${fee.toFixed(4)} USDT\n` +
+                      `💵 Payable Amount: $${netReceive.toFixed(4)} USDT\n` +
                       `📌 Address: <code>${address}</code>\n\n` +
                       `🤖Bot: @EarnPoints1_bot\n` +
                       `🛡️Status: Payment Successful ✅`;
