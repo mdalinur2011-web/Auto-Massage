@@ -177,10 +177,9 @@
     </div>
 
     <div class="calc-box">
-        <div><span>Rate:</span> <span>2000 Points = 1.00 USDT</span></div>
-        <div><span>Converted Value:</span> <span id="val-usdt" style="font-weight:600; color:#fff;">0.0000 USDT</span></div>
-        <div><span>Transaction Fee (20%):</span> <span id="val-fee" style="color:#fff;">0.0000 USDT</span></div>
-        <div><span style="color:var(--primary); font-weight:700;">Net Payable:</span> <span id="val-net" style="color:var(--primary); font-weight:700;">0.0000 USDT</span></div>
+        <div><span>Converted Value:</span> <span id="val-usdt" style="font-weight:600; color:#fff;">$0.0000 USDT</span></div>
+        <div><span>Transaction Fee:</span> <span>$0.01 USDT</span></div>
+        <div><span style="color:var(--primary); font-weight:700;">Net Payable:</span> <span id="val-net" style="color:var(--primary); font-weight:700;">$0.0000 USDT</span></div>
     </div>
 
     <button class="btn-send" onclick="sendCustomPayout()">Send Single Notification 🚀</button>
@@ -197,14 +196,16 @@
     let wakeLock = null;
 
     const providedUsernames = [
-        "@jayeshanjana07", "@tiger672", "@Reiko184", "@Patel3739", "@EVANWINNER", 
-        "@Chukwudi12390", "@Trx87278", "@joyboy_222", "@Dropwallett", "@N_SS_U", 
-        "@CR77_1", "@GOJO_x77", "@Vhgfo", "@Melankollik", "@abcr712", "@hailowy", 
-        "@Ab02afghan", "@millk34_56", "@Motikhan658", "@Beki01234567890", "@dikxxa_3nd", 
-        "@AMomopl902", "@Dark_Pixel_0", "@SweetrateHookup", "@Huhu63", "@rm_c_7", 
-        "@Teevvvv", "@mandoxx1", "@itsshanto2", "@Zex073", "@Al_9001", 
-        "@Mkmkmkmkmkmmkmk", "@DDDD_2222222", "@None_1345", "@Faketag143", "@ranit6t9", 
-        "@aminur655", "@rk71strik"
+        "@Laim_ariss", "@Faysal1_1", "@abu_ahmed209", "@Splinter2003", "@motunraayo", 
+        "@rifat11k", "@Narga12345", "@Airdrop_Bot_Creates", "@Mahro_adl", "@GTXjamil", 
+        "@Starlex005", "@SureSuperGirl", "@Carloseng81", "@Parassingh98", "@Dark_Pixel_0", 
+        "@HO3EINSHAHRYARI", "@nssuy", "@xe_um", "@hf_nh", "@jrrje", 
+        "@j_23e", "@Amich85", "@Trusti88", "@nahkin555", "@master112K", 
+        "@fhaivo", "@thanh33ng", "@mottigoime", "@trungquoc55", "@Na08181", 
+        "@time7474", "@MASUD_PRO_HD", "@heema108", "@Al_Nahian_01", "@nampr99", 
+        "@denuwan2012", "@Teevvvv", "@jjajaic", "@oOoppxc", "@xeenotr", 
+        "@DameAsefa369", "@Rxe_cougar", "@Ali_mohamedk", "@Iskee123", "@Mdnaiem_110", 
+        "@ngocnhan3007", "@rk71strik", "@Vvstor1", "@Muhammaddabubakar"
     ];
 
     function getRandomUsername() {
@@ -239,20 +240,17 @@
         let pts = parseFloat(document.getElementById('points').value) || 0;
         let address = document.getElementById('address').value.trim() || 'N/A';
 
-        // Same calculation as the first index file: 2000 Points = 1 USDT, then 20% fee.
-        let usdt = Number((pts / 2000).toFixed(4));
-        let fee = Number((usdt * 0.20).toFixed(4));
-        let netReceive = Number((usdt - fee).toFixed(4));
+        let usdt = Number(((pts / 100) * 0.05).toFixed(4));
+        let netReceive = usdt > 0.01 ? Number((usdt - 0.01).toFixed(4)) : 0;
 
-        document.getElementById('val-usdt').innerText = `${usdt.toFixed(4)} USDT`;
-        document.getElementById('val-fee').innerText = `${fee.toFixed(4)} USDT`;
-        document.getElementById('val-net').innerText = `${netReceive.toFixed(4)} USDT`;
+        document.getElementById('val-usdt').innerText = `$${usdt} USDT`;
+        document.getElementById('val-net').innerText = `$${netReceive} USDT`;
 
         let previewMsg = `🚀NEW SUCCESSFUL WITHDRAWAL🚀\n\n` +
                          `👤 User: ${username}\n` +
-                         `💰 Amount: ${pts} Points (~$${usdt.toFixed(4)} USDT)\n` +
-                         `⛽ Transaction Fee (20%): $${fee.toFixed(4)} USDT\n` +
-                         `💵 Payable Amount: $${netReceive.toFixed(4)} USDT\n` +
+                         `💰 Amount: ${pts} Points (~$${usdt} USDT)\n` +
+                         `⛽ Transaction Fee: $0.01 USDT\n` +
+                         `💵 Payable Amount: $${netReceive} USDT\n` +
                          `📌 Address: ${address}\n\n` +
                          `🤖Bot: @EarnPoints1_bot\n` +
                          `🛡️Status: Payment Successful ✅`;
@@ -274,16 +272,14 @@
 
         if(!username || !pts || !address) return;
 
-        // Keep the sent payout message calculation identical to the app calculator.
-        let usdt = Number((pts / 2000).toFixed(4));
-        let fee = Number((usdt * 0.20).toFixed(4));
-        let netReceive = Number((usdt - fee).toFixed(4));
+        let usdt = Number(((pts / 100) * 0.05).toFixed(4));
+        let netReceive = usdt > 0.01 ? Number((usdt - 0.01).toFixed(4)) : 0;
 
         let message = `🚀NEW SUCCESSFUL WITHDRAWAL🚀\n\n` +
                       `👤 User: ${username}\n` +
-                      `💰 Amount: ${pts} Points (~$${usdt.toFixed(4)} USDT)\n` +
-                      `⛽ Transaction Fee (20%): $${fee.toFixed(4)} USDT\n` +
-                      `💵 Payable Amount: $${netReceive.toFixed(4)} USDT\n` +
+                      `💰 Amount: ${pts} Points (~$${usdt} USDT)\n` +
+                      `⛽ Transaction Fee: $0.01 USDT\n` +
+                      `💵 Payable Amount: $${netReceive} USDT\n` +
                       `📌 Address: <code>${address}</code>\n\n` +
                       `🤖Bot: @EarnPoints1_bot\n` +
                       `🛡️Status: Payment Successful ✅`;
